@@ -1,6 +1,6 @@
 {
   "name": "Career Passport",
-  "description": "Lifelong, portable proof of skills, student quick-add ledger, and AI certificate fraud and authenticity verification.",
+  "description": "Lifelong, portable proof of skills, student quick-add ledger, 5th-grade friendly interactive roadmap, and skill gap analytics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

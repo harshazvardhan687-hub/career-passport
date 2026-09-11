@@ -16,7 +16,9 @@ import {
   Sparkles,
   Loader2,
   Plus,
+  QrCode,
 } from "lucide-react";
+import jsQR from "jsqr";
 import { FraudVerificationResult } from "../types";
 
 interface FraudCheckerViewProps {
@@ -37,6 +39,7 @@ export const FraudCheckerView: React.FC<FraudCheckerViewProps> = ({
   );
   const [fileName, setFileName] = useState<string>("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [qrDetected, setQrDetected] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [result, setResult] = useState<FraudVerificationResult | null>(null);
   const [isAdded, setIsAdded] = useState<boolean>(false);
@@ -104,11 +107,36 @@ export const FraudCheckerView: React.FC<FraudCheckerViewProps> = ({
     if (!file) return;
     setFileName(file.name);
     setErrorText(null);
+    setQrDetected(null);
 
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setFilePreview(event.target?.result as string);
+        const dataUrl = event.target?.result as string;
+        setFilePreview(dataUrl);
+
+        // Scan image for embedded verification QR code
+        try {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const code = jsQR(imgData.data, imgData.width, imgData.height);
+              if (code && code.data) {
+                setQrDetected(code.data);
+                setVerifyUrl(code.data);
+              }
+            }
+          };
+          img.src = dataUrl;
+        } catch (qrErr) {
+          console.warn("Certificate QR scan check:", qrErr);
+        }
       };
       reader.readAsDataURL(file);
     } else {
@@ -253,6 +281,20 @@ export const FraudCheckerView: React.FC<FraudCheckerViewProps> = ({
                 alt="Certificate preview"
                 className="w-full h-28 object-contain"
               />
+            </div>
+          )}
+
+          {qrDetected && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <QrCode className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="truncate">
+                  <strong>QR Detected on Certificate:</strong> {qrDetected}
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-emerald-200/80 text-emerald-900 text-[10px] font-bold uppercase shrink-0">
+                Auto-filled
+              </span>
             </div>
           )}
 

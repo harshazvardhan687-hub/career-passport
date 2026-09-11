@@ -1,6 +1,7 @@
 import React from "react";
 import { Award, Zap, ShieldCheck, Users } from "lucide-react";
 import { PassportProfile } from "../types";
+import { getPassportCredits } from "../utils/credits";
 
 interface HeroBannerProps {
   passports?: PassportProfile[];
@@ -113,8 +114,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                     className="w-4 h-4 rounded-full object-cover"
                   />
                   <span>{(p.fullName || "Candidate").split(",")[0]}</span>
-                  <span className="text-[10px] font-mono text-slate-500">
-                    ({p.careerScore ?? 0} cr)
+                  <span className="text-[10px] font-mono font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.2 rounded">
+                    {getPassportCredits(p)} cr
                   </span>
                 </button>
               );

@@ -13,9 +13,11 @@ import { GlobalRecognitionView } from "./components/GlobalRecognitionView";
 import { InvisibleSkillsView } from "./components/InvisibleSkillsView";
 import { RecruiterSearchView } from "./components/RecruiterSearchView";
 import { SharePassportModal } from "./components/SharePassportModal";
+import { PublicVerificationModal } from "./components/PublicVerificationModal";
 import { ManagePersonasModal } from "./components/ManagePersonasModal";
 import { EditProfileModal } from "./components/EditProfileModal";
 import { INITIAL_PASSPORTS, INITIAL_JOBS } from "./data/initialData";
+import { getPassportCredits } from "./utils/credits";
 import {
   TabType,
   PassportProfile,
@@ -35,13 +37,19 @@ export function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return parsed.map((p) => ({
+            ...p,
+            careerScore: getPassportCredits(p),
+          }));
         }
       }
     } catch (e) {
       console.warn("Failed to load passports from localStorage:", e);
     }
-    return INITIAL_PASSPORTS;
+    return INITIAL_PASSPORTS.map((p) => ({
+      ...p,
+      careerScore: getPassportCredits(p),
+    }));
   });
 
   const [activePassportId, setActivePassportId] = useState<string>(() => {
@@ -51,10 +59,36 @@ export function App() {
   const [activeTab, setActiveTab] = useState<TabType>("passport");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [isPublicVerifyOpen, setIsPublicVerifyOpen] = useState<boolean>(false);
+  const [verifiedPassportToDisplay, setVerifiedPassportToDisplay] = useState<PassportProfile | null>(null);
   const [isManageModalOpen, setIsManageModalOpen] = useState<boolean>(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState<boolean>(false);
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-detect ?verify= or ?passport= in URL (e.g., from smartphone camera QR scan)
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const verifyQuery = searchParams.get("verify") || searchParams.get("passport");
+      if (verifyQuery) {
+        const found = passports.find(
+          (p) =>
+            p.passportNumber.toLowerCase() === verifyQuery.toLowerCase() ||
+            p.id.toLowerCase() === verifyQuery.toLowerCase()
+        );
+        if (found) {
+          setActivePassportId(found.id);
+          setVerifiedPassportToDisplay(found);
+        } else {
+          setVerifiedPassportToDisplay(passports[0] || INITIAL_PASSPORTS[0]);
+        }
+        setIsPublicVerifyOpen(true);
+      }
+    } catch (err) {
+      console.warn("Could not check URL parameters for verification:", err);
+    }
+  }, []);
 
   // Synchronize with Local Storage
   useEffect(() => {
@@ -66,10 +100,15 @@ export function App() {
   }, [passports]);
 
   const fallbackPassport: PassportProfile = INITIAL_PASSPORTS[0];
-  const activePassport =
+  const rawActivePassport =
     passports.find((p) => p.id === activePassportId) ||
     passports[0] ||
     fallbackPassport;
+
+  const activePassport: PassportProfile = {
+    ...rawActivePassport,
+    careerScore: getPassportCredits(rawActivePassport),
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -82,10 +121,10 @@ export function App() {
       prevList.map((p) => {
         if (p.id !== activePassportId) return p;
         const updated = updater(p);
-        const achCredits = updated.achievements.reduce((sum, a) => sum + (Number(a.credits) || 0), 0);
+        const achCredits = getPassportCredits(updated);
         return {
           ...updated,
-          careerScore: achCredits > 0 ? achCredits : (updated.careerScore || 0),
+          careerScore: achCredits,
         };
       })
     );
@@ -437,7 +476,10 @@ export function App() {
             {activeTab === "roadmap" && (
               <ProgressionRoadmap
                 passport={activePassport}
+                careerScore={getPassportCredits(activePassport)}
                 onActionClick={() => setActiveTab("jobs")}
+                onAddMilestoneClick={() => setActiveTab("quick-add")}
+                onSkillVerifiedAndAdded={handleSkillVerifiedAndAdded}
               />
             )}
 
@@ -517,6 +559,21 @@ export function App() {
         passport={activePassport}
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+        onOpenVerification={(p) => {
+          setVerifiedPassportToDisplay(p);
+          setIsPublicVerifyOpen(true);
+        }}
+      />
+
+      {/* Public Cryptographic Credential Verification Dossier */}
+      <PublicVerificationModal
+        passport={verifiedPassportToDisplay || activePassport}
+        isOpen={isPublicVerifyOpen}
+        onClose={() => setIsPublicVerifyOpen(false)}
+        onExploreFullLedger={() => {
+          setActiveTab("passport");
+          setIsPublicVerifyOpen(false);
+        }}
       />
 
       {/* Manage Personas Modal */}

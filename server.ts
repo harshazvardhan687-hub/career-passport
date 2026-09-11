@@ -1020,6 +1020,210 @@ Return ONLY a JSON object matching this schema:
     }
   });
 
+  // API: User Career Credits & Level Calculation Engine
+  app.post("/api/career-credits", (req, res) => {
+    try {
+      const { achievements = [], skills = [], rawScore } = req.body;
+
+      let totalCredits = 0;
+      let schoolCredits = 0;
+      let workCredits = 0;
+      let projectCredits = 0;
+      let certCredits = 0;
+
+      if (Array.isArray(achievements) && achievements.length > 0) {
+        for (const ach of achievements) {
+          const cr = Number(ach.credits) || 0;
+          totalCredits += cr;
+          const cat = (ach.category || "").toLowerCase();
+          if (cat.includes("degree") || cat.includes("academic") || cat.includes("school")) {
+            schoolCredits += cr;
+          } else if (cat.includes("intern") || cat.includes("work") || cat.includes("job")) {
+            workCredits += cr;
+          } else if (cat.includes("project") || cat.includes("hackathon")) {
+            projectCredits += cr;
+          } else {
+            certCredits += cr;
+          }
+        }
+      } else if (Array.isArray(skills) && skills.length > 0) {
+        totalCredits = skills.reduce((s: number, sk: any) => s + (Number(sk.credits) || 0), 0);
+        projectCredits = Math.round(totalCredits * 0.4);
+        certCredits = totalCredits - projectCredits;
+      } else {
+        totalCredits = Number(rawScore) || 820;
+        schoolCredits = 200;
+        workCredits = 150;
+        projectCredits = 220;
+        certCredits = totalCredits - 570;
+      }
+
+      let level = 1;
+      let levelTitle = "Novice Explorer";
+      let nextThreshold = 300;
+
+      if (totalCredits >= 1200) {
+        level = 5;
+        levelTitle = "Master Specialist";
+        nextThreshold = 1500;
+      } else if (totalCredits >= 900) {
+        level = 4;
+        levelTitle = "Job Ready Pro";
+        nextThreshold = 1200;
+      } else if (totalCredits >= 600) {
+        level = 3;
+        levelTitle = "Rising Star";
+        nextThreshold = 900;
+      } else if (totalCredits >= 300) {
+        level = 2;
+        levelTitle = "Skill Builder";
+        nextThreshold = 600;
+      }
+
+      res.json({
+        success: true,
+        data: {
+          totalCredits,
+          level,
+          levelTitle,
+          nextThreshold,
+          pointsNeeded: Math.max(0, nextThreshold - totalCredits),
+          breakdown: {
+            school: schoolCredits,
+            work: workCredits,
+            projects: projectCredits,
+            badges: certCredits,
+          },
+        },
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // API: Friendly Skill Gap & Roadmap Analytics Engine
+  app.post("/api/skill-gap-analytics", async (req, res) => {
+    try {
+      const { targetRole = "Software Developer", candidateSkills = [], achievements = [] } = req.body;
+
+      const roleRequirements: Record<string, { required: string[]; preferred: string[]; minCredits: number; summary: string }> = {
+        "Software Developer": {
+          required: ["React & TypeScript", "Data Structures & Algorithms", "API Development & Node.js", "Git & Team Collaboration"],
+          preferred: ["Docker & Containers", "Cloud Deployment (AWS/GCP)", "Automated Testing"],
+          minCredits: 750,
+          summary: "Builds modern web and mobile apps that people use every day.",
+        },
+        "Cloud Systems & DevOps": {
+          required: ["Linux Administration", "Cloud Architecture (AWS/GCP)", "Docker & Containers", "CI/CD Pipelines"],
+          preferred: ["Kubernetes", "Infrastructure as Code", "Network Security"],
+          minCredits: 850,
+          summary: "Keeps cloud servers running fast, secure, and 24/7 online.",
+        },
+        "AI & Machine Learning Engineer": {
+          required: ["Python Programming", "Linear Algebra & Statistics", "Machine Learning Foundations", "API Integration"],
+          preferred: ["PyTorch / TensorFlow", "Prompt Engineering & RAG", "Data Pipelines"],
+          minCredits: 900,
+          summary: "Teaches smart computers to recognize patterns and chat like a human.",
+        },
+        "Automotive Diagnostic Specialist": {
+          required: ["Engine Electronics & OBD-II", "Electrical Wiring Diagnostics", "Brake & Safety Systems", "Shop Safety Protocols"],
+          preferred: ["High-Voltage Hybrid Servicing", "CAN-Bus Signal Analysis", "EPA Section 609"],
+          minCredits: 650,
+          summary: "Diagnoses and repairs modern smart cars and hybrid drivetrains.",
+        },
+        "Healthcare Registered Nurse": {
+          required: ["Patient Assessment & Triage", "Medication Administration", "Infection Prevention Protocols", "Vital Signs Monitoring"],
+          preferred: ["Advanced Cardiac Life Support", "Wound Care & Sterile Dressing", "Pediatric Care"],
+          minCredits: 800,
+          summary: "Cares for patients and saves lives in hospitals and clinics.",
+        },
+      };
+
+      const matchedRoleKey = Object.keys(roleRequirements).find((r) =>
+        r.toLowerCase().includes(targetRole.toLowerCase()) || targetRole.toLowerCase().includes(r.toLowerCase())
+      ) || "Software Developer";
+
+      const roleSpec = roleRequirements[matchedRoleKey];
+
+      // Normalize candidate competencies
+      const candidateCompetencies = [
+        ...candidateSkills.map((s: any) => (typeof s === "string" ? s : s.name || "")),
+        ...achievements.map((a: any) => `${a.title || ""} ${a.notes || ""}`),
+      ].join(" ").toLowerCase();
+
+      const acquiredList: Array<{ name: string; status: string; creditsAwarded: number; simpleExplain: string }> = [];
+      const missingList: Array<{ name: string; priority: string; creditReward: number; simpleExplain: string; difficulty: string }> = [];
+
+      for (const reqSkill of roleSpec.required) {
+        const words = reqSkill.toLowerCase().split(/[\s/&]+/);
+        const hasSkill = words.some((w) => w.length > 2 && candidateCompetencies.includes(w));
+        if (hasSkill) {
+          acquiredList.push({
+            name: reqSkill,
+            status: "Unlocked",
+            creditsAwarded: 80,
+            simpleExplain: `You have proven mastery in ${reqSkill}!`,
+          });
+        } else {
+          missingList.push({
+            name: reqSkill,
+            priority: "Required",
+            creditReward: 75,
+            simpleExplain: `Learn ${reqSkill} to level up for ${matchedRoleKey}!`,
+            difficulty: "Medium",
+          });
+        }
+      }
+
+      for (const prefSkill of roleSpec.preferred) {
+        const words = prefSkill.toLowerCase().split(/[\s/&]+/);
+        const hasSkill = words.some((w) => w.length > 2 && candidateCompetencies.includes(w));
+        if (hasSkill) {
+          acquiredList.push({
+            name: prefSkill,
+            status: "Unlocked Bonus",
+            creditsAwarded: 60,
+            simpleExplain: `Bonus superpower unlocked: ${prefSkill}!`,
+          });
+        } else {
+          missingList.push({
+            name: prefSkill,
+            priority: "Bonus",
+            creditReward: 50,
+            simpleExplain: `Recommended extra superpower to stand out!`,
+            difficulty: "Easy",
+          });
+        }
+      }
+
+      const totalSkillsCount = roleSpec.required.length + roleSpec.preferred.length;
+      const matchScore = Math.round((acquiredList.length / Math.max(1, totalSkillsCount)) * 100);
+
+      res.json({
+        success: true,
+        data: {
+          targetRole: matchedRoleKey,
+          summary: roleSpec.summary,
+          matchScore,
+          isJobReady: matchScore >= 75,
+          statusLabel: matchScore >= 80 ? "🎉 Job Ready Pro!" : matchScore >= 50 ? "🚀 Rising Star (Almost There!)" : "🌱 Skill Builder",
+          acquiredSkills: acquiredList,
+          missingSkills: missingList,
+          requiredCredits: roleSpec.minCredits,
+          nextSteps: [
+            missingList[0]
+              ? `Step 1: Unlock "${missingList[0].name}" by completing a quick 3-question quiz (+${missingList[0].creditReward} pts).`
+              : "Step 1: Review your unlocked credentials.",
+            "Step 2: Add any real-world school or work project to showcase evidence.",
+            "Step 3: Share your Verified Career Passport with recruiters!",
+          ],
+        },
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // API: Informal / Invisible Skills Extractor
   app.post("/api/extract-skills", async (req, res) => {
     try {

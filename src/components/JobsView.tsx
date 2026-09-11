@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { PassportProfile, JobOpportunity, SkillGapChallenge, SkillProof } from "../types";
+import { getPassportCredits } from "../utils/credits";
 
 interface JobsViewProps {
   passport?: PassportProfile;
@@ -53,7 +54,7 @@ export const JobsView: React.FC<JobsViewProps> = ({
   const [appliedJobs, setAppliedJobs] = useState<Record<string, boolean>>({});
 
   const selectedJob = jobs.find((j) => j.id === selectedJobId) || jobs[0];
-  const userScore = passport?.careerScore ?? 0;
+  const userScore = getPassportCredits(passport);
   const userSkills = passport?.skills || [];
   const userAchievements = passport?.achievements || [];
   const requiredSkills = selectedJob?.requiredSkills || [];

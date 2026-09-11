@@ -23,6 +23,7 @@ import {
   QrCode
 } from "lucide-react";
 import { PassportProfile } from "../types";
+import { getPassportCredits } from "../utils/credits";
 
 interface HeaderProps {
   activeTab?: string;
@@ -62,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
     (passports.find((p) => p.id === activePassportId)) ||
     passports[0];
 
-  const careerScore = currentPassport?.careerScore ?? 0;
+  const careerScore = getPassportCredits(currentPassport);
   const handleOpenShare = onOpenShareModal || onOpenShare || (() => {});
   const handleOpenManage = onOpenManagePersonas || (() => {});
   const handleOpenEdit = onOpenEditProfile || (() => {});
@@ -151,15 +152,15 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Credits Counter Pill */}
           <button
-            onClick={() => onSelectTab("passport")}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold shadow-2xs hover:bg-emerald-100 transition cursor-pointer"
-            title="View verified career credits ledger"
+            onClick={() => onSelectTab("roadmap")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold shadow-2xs transition cursor-pointer"
+            title="View Career Credits & Roadmap Analytics"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-mono font-bold text-emerald-700 text-xs">
+            <span className="text-sm">🌟</span>
+            <span className="font-mono font-black text-amber-900 text-xs sm:text-sm">
               {careerScore}
             </span>
-            <span className="text-emerald-700 text-[10px] hidden sm:inline">
+            <span className="text-amber-800 text-[11px] hidden sm:inline font-bold">
               Credits
             </span>
           </button>

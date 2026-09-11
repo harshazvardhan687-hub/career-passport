@@ -17,6 +17,7 @@ import {
   Edit3,
 } from "lucide-react";
 import { PassportProfile, Achievement } from "../types";
+import { getPassportCredits } from "../utils/credits";
 
 interface PassportViewProps {
   passport?: PassportProfile;
@@ -49,7 +50,7 @@ export const PassportView: React.FC<PassportViewProps> = ({
   const handleQuickAdd = onNavigateToQuickAdd || onAddSkillClick || (() => {});
   const handleFraud = onNavigateToFraudChecker || (() => {});
 
-  const safeScore = passport?.careerScore ?? 0;
+  const safeScore = getPassportCredits(passport);
   const maxCreditsBenchmark = 1000;
   const progressPercent = Math.min(
     100,

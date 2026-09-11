@@ -19,6 +19,7 @@ import {
   Edit3
 } from "lucide-react";
 import { PassportProfile } from "../types";
+import { getPassportCredits } from "../utils/credits";
 
 interface SidebarProps {
   passports: PassportProfile[];
@@ -94,16 +95,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: "My Passport",
           description: "Identity & Credits Ledger",
           icon: Award,
-          badge: `${currentPassport.careerScore || 0} cr`,
+          badge: `${getPassportCredits(currentPassport)} cr`,
           badgeColor: "bg-blue-500/20 text-blue-300 border-blue-500/30",
         },
         {
           id: "roadmap",
-          label: "Student Roadmap",
-          description: "4-Year Cumulative Milestones",
+          label: "Roadmap & Analytics",
+          description: "Visual Journey & Skill Gap",
           icon: GraduationCap,
-          badge: "Timeline",
-          badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+          badge: "Interactive",
+          badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30",
         },
         {
           id: "resume-parser",
@@ -365,8 +366,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <ChevronDown className="w-3 h-3 text-slate-400" />
                   )}
                 </div>
-                <div className="text-[10px] text-blue-400 font-mono font-semibold truncate">
-                  {currentPassport.careerScore} Career Credits
+                <div className="text-[10px] text-amber-300 font-mono font-bold truncate">
+                  🌟 {getPassportCredits(currentPassport)} Credits
                 </div>
               </div>
             </div>
