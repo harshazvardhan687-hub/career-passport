@@ -14,6 +14,7 @@ import {
   FileBadge,
   Trophy,
   Zap,
+  Edit3,
 } from "lucide-react";
 import { PassportProfile, Achievement } from "../types";
 
@@ -26,6 +27,7 @@ interface PassportViewProps {
   onNavigateToQuickAdd?: () => void;
   onAddSkillClick?: () => void;
   onNavigateToFraudChecker?: () => void;
+  onOpenEditProfile?: () => void;
 }
 
 export const PassportView: React.FC<PassportViewProps> = ({
@@ -37,6 +39,7 @@ export const PassportView: React.FC<PassportViewProps> = ({
   onNavigateToQuickAdd,
   onAddSkillClick,
   onNavigateToFraudChecker,
+  onOpenEditProfile,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -164,7 +167,17 @@ export const PassportView: React.FC<PassportViewProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {onOpenEditProfile && (
+                <button
+                  onClick={onOpenEditProfile}
+                  className="px-3 py-2 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                  title="Edit Profile"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Edit Profile</span>
+                </button>
+              )}
               <button
                 onClick={handleOpenShare}
                 className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer"

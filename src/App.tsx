@@ -14,6 +14,7 @@ import { InvisibleSkillsView } from "./components/InvisibleSkillsView";
 import { RecruiterSearchView } from "./components/RecruiterSearchView";
 import { SharePassportModal } from "./components/SharePassportModal";
 import { ManagePersonasModal } from "./components/ManagePersonasModal";
+import { EditProfileModal } from "./components/EditProfileModal";
 import { INITIAL_PASSPORTS, INITIAL_JOBS } from "./data/initialData";
 import {
   TabType,
@@ -51,6 +52,7 @@ export function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState<boolean>(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState<boolean>(false);
   const [jobs, setJobs] = useState(INITIAL_JOBS);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -87,6 +89,14 @@ export function App() {
         };
       })
     );
+  };
+
+  const handleUpdateProfile = (updated: Partial<PassportProfile>) => {
+    updateActivePassport((prev) => ({
+      ...prev,
+      ...updated,
+    }));
+    showToast(`Profile updated successfully.`);
   };
 
   // Handler: Add Milestone from QuickAdd
@@ -370,6 +380,7 @@ export function App() {
         activePassportId={activePassportId}
         onSelectPassport={setActivePassportId}
         onOpenManagePersonas={() => setIsManageModalOpen(true)}
+        onOpenEditProfile={() => setIsEditProfileOpen(true)}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
         onOpenShareModal={() => setIsShareModalOpen(true)}
@@ -390,6 +401,7 @@ export function App() {
           onOpenShare={() => setIsShareModalOpen(true)}
           onOpenShareModal={() => setIsShareModalOpen(true)}
           onOpenManagePersonas={() => setIsManageModalOpen(true)}
+          onOpenEditProfile={() => setIsEditProfileOpen(true)}
         />
 
         {/* Dynamic Main Body */}
@@ -418,6 +430,7 @@ export function App() {
                 onNavigateToQuickAdd={() => setActiveTab("quick-add")}
                 onAddSkillClick={() => setActiveTab("quick-add")}
                 onNavigateToFraudChecker={() => setActiveTab("fraud-checker")}
+                onOpenEditProfile={() => setIsEditProfileOpen(true)}
               />
             )}
 
@@ -520,6 +533,16 @@ export function App() {
         onResetToDefault={handleResetToDefault}
         onDeletePassport={handleDeletePassport}
       />
+
+      {/* Edit Profile Details Modal */}
+      {isEditProfileOpen && (
+        <EditProfileModal
+          isOpen={isEditProfileOpen}
+          onClose={() => setIsEditProfileOpen(false)}
+          passport={activePassport}
+          onSave={handleUpdateProfile}
+        />
+      )}
     </div>
   );
 }

@@ -15,7 +15,8 @@ import {
   ChevronUp,
   X,
   Check,
-  GraduationCap
+  GraduationCap,
+  Edit3
 } from "lucide-react";
 import { PassportProfile } from "../types";
 
@@ -27,6 +28,7 @@ interface SidebarProps {
   onRemovePassport?: (id: string) => void;
   onOpenManageMembers?: () => void;
   onOpenManagePersonas?: () => void;
+  onOpenEditProfile?: () => void;
   activeTab: string;
   onSelectTab: (tab: any) => void;
   isOpen?: boolean;
@@ -42,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRemovePassport,
   onOpenManageMembers,
   onOpenManagePersonas,
+  onOpenEditProfile,
   activeTab,
   onSelectTab,
   isOpen = false,
@@ -369,16 +372,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="flex items-center gap-1 shrink-0">
+              {onOpenEditProfile && (
+                <button
+                  onClick={onOpenEditProfile}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  title="Edit Profile Details"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={handleOpenManage}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
                 title="Manage All Profiles & Add Custom Member"
               >
                 <Users className="w-4 h-4" />
               </button>
               <button
                 onClick={onOpenShareModal}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
                 title="Share Career Passport & QR Code"
               >
                 <Share2 className="w-4 h-4" />
