@@ -35,6 +35,7 @@ export const ManagePersonasModal: React.FC<ManagePersonasModalProps> = ({
   onDeletePassport,
 }) => {
   const [isAddingNew, setIsAddingNew] = useState<boolean>(false);
+  const [isConfirmingReset, setIsConfirmingReset] = useState<boolean>(false);
   const [fullName, setFullName] = useState<string>("");
   const [headline, setHeadline] = useState<string>("");
   const [targetRole, setTargetRole] = useState<string>("");
@@ -212,18 +213,35 @@ export const ManagePersonasModal: React.FC<ManagePersonasModalProps> = ({
               <span>Add Custom Member Profile</span>
             </button>
 
-            <button
-              onClick={() => {
-                if (window.confirm("Reset all passports and ledger records back to demo state?")) {
-                  onResetToDefault();
-                  onClose();
-                }
-              }}
-              className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 transition"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset to Defaults</span>
-            </button>
+            {!isConfirmingReset ? (
+              <button
+                onClick={() => setIsConfirmingReset(true)}
+                className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 transition cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset to Defaults</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-rose-600 font-semibold">Confirm reset?</span>
+                <button
+                  onClick={() => {
+                    onResetToDefault();
+                    setIsConfirmingReset(false);
+                    onClose();
+                  }}
+                  className="px-2 py-1 rounded-lg bg-rose-600 text-white font-bold text-[11px] hover:bg-rose-700 transition cursor-pointer"
+                >
+                  Yes, Reset
+                </button>
+                <button
+                  onClick={() => setIsConfirmingReset(false)}
+                  className="px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-[11px] hover:bg-slate-300 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <form

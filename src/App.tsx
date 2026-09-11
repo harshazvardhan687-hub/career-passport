@@ -366,6 +366,7 @@ export function App() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         passports={passports}
+        activePassport={activePassport}
         activePassportId={activePassportId}
         onSelectPassport={setActivePassportId}
         onOpenManagePersonas={() => setIsManageModalOpen(true)}
@@ -374,13 +375,16 @@ export function App() {
         onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Content Area (offset on desktop by sidebar width) */}
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-72">
         {/* Header */}
         <Header
           activeTab={activeTab}
           activePassport={activePassport}
           passport={activePassport}
+          passports={passports}
+          activePassportId={activePassportId}
+          onSelectPassport={setActivePassportId}
           onOpenSidebar={() => setIsMobileSidebarOpen(true)}
           onSelectTab={(tab) => setActiveTab(tab as TabType)}
           onOpenShare={() => setIsShareModalOpen(true)}
@@ -392,7 +396,12 @@ export function App() {
         <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto space-y-6">
           {/* Hero Banner (Always visible to anchor candidate context) */}
           <HeroBanner
+            passports={passports}
             passport={activePassport}
+            activePassport={activePassport}
+            activePersonaId={activePassportId}
+            onSelectPersona={setActivePassportId}
+            onOpenManageMembers={() => setIsManageModalOpen(true)}
             onOpenShare={() => setIsShareModalOpen(true)}
             onNavigateTab={(tab) => setActiveTab(tab as TabType)}
           />
@@ -402,8 +411,13 @@ export function App() {
             {activeTab === "passport" && (
               <PassportView
                 passport={activePassport}
-                onAddSkillClick={() => setActiveTab("quick-add")}
+                onViewEvidence={() => setActiveTab("evidence")}
                 onViewProofClick={() => setActiveTab("evidence")}
+                onOpenShareModal={() => setIsShareModalOpen(true)}
+                onOpenShare={() => setIsShareModalOpen(true)}
+                onNavigateToQuickAdd={() => setActiveTab("quick-add")}
+                onAddSkillClick={() => setActiveTab("quick-add")}
+                onNavigateToFraudChecker={() => setActiveTab("fraud-checker")}
               />
             )}
 

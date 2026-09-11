@@ -186,7 +186,7 @@ export const PassportView: React.FC<PassportViewProps> = ({
         {/* Bio statement */}
         <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-600 leading-relaxed max-w-4xl">
           <span className="font-bold text-slate-800">Verified Dossier: </span>
-          {passport.bio}
+          {passport?.bio || "Verified candidate credential dossier and cryptographic career ledger."}
         </div>
       </div>
 
